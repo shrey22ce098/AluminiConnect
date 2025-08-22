@@ -39,7 +39,36 @@ async function getUnapprovedAlumni(req, res) {
   }
 }
 
+
+const fs = require('fs');
+const path = require('path');
+
+// Audit log helper
+function logAdminAction(adminId, action, details) {
+  const logPath = path.join(__dirname, '../../admin_audit.log');
+  const logEntry = `${new Date().toISOString()} | Admin: ${adminId} | Action: ${action} | Details: ${JSON.stringify(details)}\n`;
+  fs.appendFileSync(logPath, logEntry);
+}
+
+// Approve user (alumni/professor)
+async function approveUser(req, res) {
+  try {
+    const { userId } = req.body;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ status: 'fail', message: 'User not found' });
+    }
+    user.isApproved = true;
+    await user.save();
+    logAdminAction(req.user._id, 'APPROVE_USER', { userId });
+    res.status(200).json({ status: 'success', message: 'User approved' });
+  } catch (error) {
+    res.status(500).json({ status: 'fail', message: 'Internal Server Error' });
+  }
+}
+
 module.exports = {
   getAllUsers,
   getUnapprovedAlumni,
+  approveUser,
 };

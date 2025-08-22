@@ -1,6 +1,7 @@
 // const Alumni = require("../models/alumniModel");
 // const { Admin } = require("../models/adminModel");
 const { User } = require("../models/user");
+const bcrypt = require('bcryptjs');
 // const {College} = require('../models/collegeModel');
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
@@ -25,7 +26,8 @@ const loginController = async (req, res) => {
             "Alumni not approved, Please contact the administrator for assistance.",
         });
       } else {
-        if (alumni.password === password) {
+        const isMatch = await bcrypt.compare(password, alumni.password);
+        if (isMatch) {
           // generate token
           const token = jwt.sign({ id: alumni._id }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRES_IN,
@@ -36,6 +38,8 @@ const loginController = async (req, res) => {
                 process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
             ),
             httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
           });
           res.status(200).json({
             alumni,
@@ -65,7 +69,8 @@ const loginController = async (req, res) => {
             "Alumni not approved, Please contact the administrator for assistance.",
         });
       } else {
-        if (admin.password === password) {
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (isMatch) {
           // generate token
           const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRES_IN,
@@ -76,6 +81,8 @@ const loginController = async (req, res) => {
                 process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
             ),
             httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
           });
           res.status(200).json({
             admin,

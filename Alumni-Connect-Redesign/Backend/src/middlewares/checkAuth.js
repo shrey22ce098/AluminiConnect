@@ -1,8 +1,8 @@
-const jwt = require('jsonwebtoken');
-const cookieParser = require('cookie-parser');
 
-const checkAuth = (req, res, next) => {
-    // using cookiesparser
+const jwt = require('jsonwebtoken');
+const { User } = require('../models/user');
+
+const checkAuth = async (req, res, next) => {
     try {
         const token = req.cookies.jwt;
         if (!token) {
@@ -11,11 +11,23 @@ const checkAuth = (req, res, next) => {
                 message: 'You are not logged in! Please log in to get access.',
             });
         }
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+        if (!user) {
+            return res.status(401).json({
+                status: 'fail',
+                message: 'User not found.',
+            });
+        }
+        req.user = user;
         next();
     } catch (error) {
         console.error('Error during authentication:', error);
-        throw error;
+        return res.status(401).json({
+            status: 'fail',
+            message: 'Invalid or expired token.',
+        });
     }
-}
+};
 
 module.exports = checkAuth;

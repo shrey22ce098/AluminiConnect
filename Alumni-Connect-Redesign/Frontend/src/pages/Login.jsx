@@ -20,7 +20,7 @@ function Login() {
   // Options for the role dropdown
   const roleOptions = [
     { value: "alumni", label: "Alumni" },
-    { value: "faculty", label: "Faculty" },
+    { value: "professor", label: "Professor" },
     { value: "admin", label: "Admin" },
     { value: "college", label: "College" },
   ];
@@ -49,31 +49,40 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(user.email)) {
+      toast.error('Please enter a valid email.');
+      return;
+    }
+    if (!user.password || user.password.length < 6) {
+      toast.error('Password must be at least 6 characters.');
+      return;
+    }
     if (!selectedRole) {
       toast.error("Please select a role");
       return;
     }
     setLoading(true);
-    const url = "http://localhost:8080/auth/login";
+    const url = "http://localhost:5000/auth/login";
     try {
-      const response = await axios.post(url, userData);
-      console.log("Axios Response:", response);
-      console.log("Axios Data in store:", response.data);
-      const payload = {
-        ...(selectedRole.value === "alumni"
-          ? response.data.alumni
-          : response.data.admin),
-        role: selectedRole.value,
-      };
-
+      const response = await axios.post(url, userData, { withCredentials: true });
+      let payload;
+      if (selectedRole.value === "alumni") {
+        payload = { ...response.data.alumni, role: selectedRole.value };
+      } else if (selectedRole.value === "professor") {
+        payload = { ...response.data.professor, role: selectedRole.value };
+      } else if (selectedRole.value === "admin") {
+        payload = { ...response.data.admin, role: selectedRole.value };
+      } else if (selectedRole.value === "college") {
+        payload = { ...response.data.college, role: selectedRole.value };
+      } else {
+        payload = { ...response.data, role: selectedRole.value };
+      }
       dispatch(login(payload));
       toast.success("Login Successful");
-
       setLoading(false);
       navigate("/dashboard");
     } catch (err) {
       setLoading(false);
-      console.log("Handle error here:", err);
       if (err.response) {
         toast.error(err.response.data.message || err.message);
       } else {
