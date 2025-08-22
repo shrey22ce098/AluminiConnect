@@ -7,6 +7,9 @@ const app = express();
 const rateLimiter = require('./src/middlewares/rateLimiter');
 const router = require("./src/routes");
 
+const passport = require("./passport");
+const session = require('express-session');
+
 app.use(rateLimiter);
 app.use(express.json());
 
@@ -27,6 +30,26 @@ app.use(
 app.use(express.static(`${__dirname}/public`));
 app.use(cookiesParser());
 app.use("/", router);
+
+// Session and passport setup
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secret',
+  resave: false,
+  saveUninitialized: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Google OAuth routes
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login', session: true }),
+  (req, res) => {
+    // Successful authentication, redirect to frontend dashboard
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:5173/dashboard');
+  }
+);
 
 const PORT = process.env.PORT || 5000;
 

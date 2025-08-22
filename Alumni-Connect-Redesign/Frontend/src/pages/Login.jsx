@@ -4,6 +4,7 @@ import Select from "react-select";
 import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import { login } from "../features/authSlice";
+import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import Loader from "../Components/Loader";
@@ -18,6 +19,11 @@ function Login() {
   });
   const dispatch = useDispatch();
   // Options for the role dropdown
+
+ const handleGoogleLogin = () => {
+   window.location.href = 'http://localhost:5000/auth/google';
+ };
+
   const roleOptions = [
     { value: "alumni", label: "Alumni" },
     { value: "professor", label: "Professor" },
@@ -97,6 +103,18 @@ function Login() {
       <div className="flex flex-col items-center mb-28 py-2">
         <div className="flex flex-col justify-center items-center">
           <h2 className="mt-5 text-center text-gray-900">
+        <div className="flex items-center my-4">
+          <div className="flex-grow h-px bg-gray-300"></div>
+          <span className="mx-2 text-gray-400">or</span>
+          <div className="flex-grow h-px bg-gray-300"></div>
+        </div>
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="w-full flex items-center justify-center border border-gray-300 py-2 rounded hover:bg-gray-100 transition"
+        >
+          <FcGoogle className="mr-2 text-2xl" /> Login with Google
+        </button>
             Sign in to your account
           </h2>
         </div>
