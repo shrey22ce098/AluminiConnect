@@ -1,31 +1,35 @@
+
 import { Navigate } from "react-router-dom";
 import { getUserData } from "../services/authService";
 import { getLoggedIn } from "../services/authService";
-function Home() {
+import { UserCircleIcon, EnvelopeIcon, UserGroupIcon } from '@heroicons/react/24/solid';
+
+function Dashboard() {
   const loggedin = getLoggedIn();
-  {
-    !loggedin && <Navigate to="/login" />;
-  }
+  if (!loggedin) return <Navigate to="/login" />;
   const { role, email, firstName, adminName } = getUserData();
   const displayName = role === "admin" ? adminName : firstName;
-  // console.log(data);
   return (
-    <>
-      {/* dashboard with data using tailwind */}
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-        <h1 className="text-6xl font-bold">Dashboard</h1>
-        <h2 className="text-2xl font-bold">Welcome to Dashboard</h2>
-        <div className="flex flex-col itSems-center justify-center">
-          <h3 className="text-xl font-bold">User Data</h3>
-          <div className="flex flex-col items-center justify-center">
-            <h4 className="text-lg font-bold">Name: {displayName}</h4>
-            <h4 className="text-lg font-bold">Email: {email}</h4>
-            <h4 className="text-lg font-bold">Role: {role}</h4>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-white flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8 flex flex-col items-center animate-fade-in">
+        <UserCircleIcon className="h-20 w-20 text-indigo-400 mb-4" />
+        <h1 className="text-4xl font-extrabold text-indigo-700 mb-2">Welcome, {displayName}!</h1>
+        <div className="w-full mt-4">
+          <div className="flex items-center mb-2">
+            <EnvelopeIcon className="h-5 w-5 text-indigo-400 mr-2" />
+            <span className="text-gray-700 font-medium">{email}</span>
+          </div>
+          <div className="flex items-center mb-2">
+            <UserGroupIcon className="h-5 w-5 text-indigo-400 mr-2" />
+            <span className="text-gray-700 font-medium capitalize">Role: {role}</span>
           </div>
         </div>
+        <div className="mt-6 text-center text-gray-500 text-sm">
+          Explore the navigation bar to access all features.
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
-export default Home;
+export default Dashboard;

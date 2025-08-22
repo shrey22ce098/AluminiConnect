@@ -52,17 +52,26 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Frontend validation
+    if (!formData.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(formData.email)) {
+      toast.error('Please enter a valid email.');
+      return;
+    }
+    if (!formData.password || formData.password.length < 6) {
+      toast.error('Password must be at least 6 characters.');
+      return;
+    }
+    if (!formData.role) {
+      toast.error('Please select a role.');
+      return;
+    }
     setLoading(true);
-    
-
     try {
       const response = await axios.post(
-        "http://localhost:8080/register/user",
+        "http://localhost:5000/register/user",
         formData
       );
-      console.log("inside POST request " + response.data.status);
       const { status, data } = response.data;
-
       if (status === "success") {
         toast.success("Registration successful!");
         navigate("/login");
@@ -71,7 +80,6 @@ function Register() {
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error during registration:", error);
       toast.error("Registration failed. Please try again.");
     }
   };

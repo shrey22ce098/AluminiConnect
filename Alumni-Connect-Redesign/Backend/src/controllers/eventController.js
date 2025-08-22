@@ -2,8 +2,15 @@ const { Event } = require("../models/eventModel");
 
 const createEventController = async (req, res) => {
   try {
+    // Only admin or professor can create events
+    if (!(req.user.role === "admin" || req.user.role === "professor")) {
+      return res.status(403).json({
+        status: "fail",
+        message: "Only admin or professor can create events."
+      });
+    }
     const { title, date, location, description } = req.body;
-    const createdBy = req.user._id; // Assuming you have authentication middleware that sets user in req
+    const createdBy = req.user._id;
 
     const event = await Event.create({
       title,

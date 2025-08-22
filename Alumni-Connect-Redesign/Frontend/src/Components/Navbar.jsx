@@ -1,19 +1,53 @@
+
+
 import { Disclosure } from '@headlessui/react';
 import { BellIcon, XMarkIcon, Bars3Icon } from '@heroicons/react/24/outline';
 import { Fragment } from 'react';
+import { useDispatch } from 'react-redux';
+import { logout } from '../features/authSlice';
+import axios from 'axios';
+import { getUserData, getLoggedIn } from '../services/authService';
+import { Link } from 'react-router-dom';
+import { UserCircleIcon } from '@heroicons/react/24/solid';
 
-const navigation = [
-  { name: 'Home', href: '#', current: true },
-  { name: 'Login', href: '#', current: false },
-  { name: 'Sign up', href: '#', current: false },
-  { name: 'About', href: '#', current: false },
-];
+function getNavigation(role, loggedIn) {
+  if (!loggedIn) {
+    return [
+      { name: 'Home', href: '/', current: true },
+      { name: 'Login', href: '/login', current: false },
+      { name: 'Sign up', href: '/register', current: false },
+      { name: 'About', href: '/about', current: false },
+    ];
+  }
+  const nav = [
+    { name: 'Dashboard', href: '/dashboard', current: true },
+    { name: 'Events', href: '/event', current: false },
+    { name: 'Meetings', href: '/meeting', current: false },
+    { name: 'Bulk Upload', href: '/bulkupload', current: false },
+  ];
+  if (role === 'admin') {
+    nav.push({ name: 'User Approval', href: '/user-approval', current: false });
+  }
+  nav.push({ name: 'About', href: '/about', current: false });
+  return nav;
+}
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
 function Navbar() {
+  const dispatch = useDispatch();
+  const user = getUserData();
+  const loggedIn = getLoggedIn();
+  const navigation = getNavigation(user?.role, loggedIn);
+  const handleLogout = async () => {
+    try {
+      await axios.post('http://localhost:5000/auth/logout', {}, { withCredentials: true });
+    } catch (e) {}
+    dispatch(logout());
+    window.location.href = '/login';
+  };
   return (
     <>
       <Disclosure as="nav" className="bg-gray-800">
@@ -44,20 +78,29 @@ function Navbar() {
                   <div className="hidden sm:ml-6 sm:block">
                     <div className="flex space-x-4">
                       {navigation.map((item) => (
-                        <a
+                        <Link
                           key={item.name}
-                          href={item.href}
+                          to={item.href}
                           className={classNames(
                             item.current
-                              ? 'bg-gray-900 text-white'
-                              : 'text-gray-300 hover:bg-gray-700 hover:text-white',
-                            'rounded-md px-3 py-2 text-sm font-medium'
+                              ? 'bg-indigo-700 text-white'
+                              : 'text-gray-300 hover:bg-indigo-500 hover:text-white',
+                            'rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200'
                           )}
                           aria-current={item.current ? 'page' : undefined}
                         >
                           {item.name}
-                        </a>
+                        </Link>
                       ))}
+                      {loggedIn && (
+                        <>
+                          <span className="flex items-center ml-4 text-white">
+                            <UserCircleIcon className="h-6 w-6 mr-1 text-indigo-300" />
+                            {user?.firstName || user?.adminName || user?.email}
+                          </span>
+                          <button onClick={handleLogout} className="bg-red-600 text-white px-3 py-2 rounded-md text-sm font-medium ml-2 transition-colors duration-200 hover:bg-red-700">Logout</button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

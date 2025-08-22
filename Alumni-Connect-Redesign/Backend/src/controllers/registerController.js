@@ -1,6 +1,8 @@
 // controllers/registerController.js
 const Alumni = require("../models/alumniModel");
-const { User } = require("../models/user"); // Replace with your User model
+const Professor = require("../models/professorModel");
+const { User } = require("../models/user");
+const bcrypt = require('bcryptjs');
 
 const registerController = async (req, res) => {
   try {
@@ -26,31 +28,47 @@ const registerController = async (req, res) => {
       });
     }
 
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
     // Create the user
     const newUser = await User.create({
       email,
-      password,
+      password: hashedPassword,
       role,
     });
 
-    // Create the alumni profile
-    const alumni = await Alumni.create({
-      user: newUser._id,
-      email,
-      password,
-      startYear,
-      endYear,
-      degree,
-      branch,
-      rollNumber,
-      firstName,
-      lastName,
-    });
+    let profile;
+    if (role === "alumni") {
+      profile = await Alumni.create({
+        user: newUser._id,
+        email,
+        password: hashedPassword,
+        startYear,
+        endYear,
+        degree,
+        branch,
+        rollNumber,
+        firstName,
+        lastName,
+      });
+    } else if (role === "professor") {
+      profile = await Professor.create({
+        user: newUser._id,
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        department: req.body.department,
+      });
+    } else {
+      // fallback for other roles, just return user
+      profile = newUser;
+    }
 
     res.status(201).json({
       status: "success",
       data: {
-        alumni,
+        profile,
       },
     });
   } catch (error) {
